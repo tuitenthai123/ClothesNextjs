@@ -5,18 +5,22 @@ export async function POST(request: Request) {
     try {
         const res = await request.json();
         const { hocky, masv } = res;
-
-        // Lấy dữ liệu từ API
         const response = await axios.post(`https://ems.vlute.edu.vn/vTKBSinhVien/ViewTKBSV?hocky=${hocky}&masv=${masv}`);
         const html = response.data;
-
-        // Sử dụng cheerio để phân tích HTML
         const $ = cheerio.load(html);
-
-        // Lấy nội dung HTML của phần tử có id="tab_11"
-        const tab11HTML = $('#tab_11').html() || '';  // Lấy nội dung HTML của id="tab_11"
-
-        // Trả về HTML đã được lọc
+        $('#tab_11 table tbody tr.text-bold.info').each((index, element) => {
+            const row = $(element);
+            row.removeClass()
+            row.addClass('bg-[#d9edf6] font-bold');
+        });
+        $('#tab_11 table tbody tr td').each((index, element) => {
+            const row = $(element);
+            row.addClass("border border-gray-300 px-4 py-2")
+            if (row.hasClass("warning")) row.addClass('bg-yellow-100/65 p-2');
+            if (row.hasClass("bg-gray")) row.addClass('bg-gray-400 p-2');
+        });
+        $('#tab_11 table tbody tr td span.label').addClass("p-2 rounded-lg bg-yellow-400")
+        let tab11HTML = $("#tab_11").html();
         return new Response(JSON.stringify({ tab11HTML }), { status: 200 });
     } catch (error) {
         console.error('Error fetching timetable:', error);

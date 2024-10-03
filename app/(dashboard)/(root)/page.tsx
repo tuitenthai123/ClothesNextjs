@@ -84,10 +84,22 @@ const Page = () => {
           </Select>
         </div>
       </div>
-      <div>
+      <div className=""> 
         <div className="p-2">
-          <div dangerouslySetInnerHTML={{ __html:tab11HTML}} />
+          {!tab11HTML ?
+            <div>
+              <div className="p-5 border rounded-lg shadow-lg flex justify-center items-center">
+                <span>Chưa có dữ liệu</span>
+              </div>
+            </div>
+            :
+            <div className="border p-2 rounded-lg shadow-xl">
+              <div className="" dangerouslySetInnerHTML={{ __html: tab11HTML }} />
+            </div>}
         </div>
+      </div>
+      <div className=" w-full p-2 bg-yellow-300">
+        conmeo
       </div>
     </div>
   )
