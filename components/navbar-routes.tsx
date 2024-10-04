@@ -1,6 +1,5 @@
 "use client";
-import { UserButton, useAuth } from "@clerk/nextjs";
-import { redirect,usePathname } from "next/navigation";
+
 import Link from "next/link";
 
 
