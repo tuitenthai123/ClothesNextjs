@@ -27,3 +27,22 @@ export async function POST(request: Request) {
         return new Response(JSON.stringify({ error: 'Error fetching timetable' }), { status: 500 });
     }
 }
+
+export async function PUT(request: Request) {
+    try {
+        const res = await request.json();
+        const { masv } = res;
+
+        // Gửi yêu cầu GET đến API
+        const response = await axios.get(`https://ems.vlute.edu.vn/api/danhmuc/getsvbykeyword/${masv}`);
+
+        // Chỉ lấy dữ liệu cần thiết từ response
+        const data = response.data;
+
+        // Trả về dữ liệu dưới dạng JSON
+        return new Response(JSON.stringify(data), { status: 200 });
+    } catch (error) {
+        console.error('Error fetching timetable:', error);
+        return new Response(JSON.stringify({ error: 'Error fetching timetable' }), { status: 500 });
+    }
+}

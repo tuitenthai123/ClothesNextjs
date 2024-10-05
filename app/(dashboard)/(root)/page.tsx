@@ -1,8 +1,8 @@
-"use client"
-import axios from "axios"
-import React, { useEffect, useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+"use client";
+import axios from "axios";
+import React, { useEffect, useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -10,36 +10,71 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
 const Page = () => {
-  const [tracuu, settracuu] = useState(false)
-  const [hocKy, setHocKy] = useState("42")
-  const [masv, setMasv] = useState("")
+  interface Student {
+    id: number;
+    itemCode: string; // Mã sinh viên
+    itemName: string; // Tên sinh viên
+  }
+
+  const [tracuu, setTracuu] = useState(false);
+  const [hocKy, setHocKy] = useState("42");
+  const [masv, setMasv] = useState("");
+  const [selectedItemCode, setSelectedItemCode] = useState(""); 
   const [tab11HTML, setTab11HTML] = useState<string>('');
+  const [studentData, setStudentData] = useState<Student[]>([]);
 
   useEffect(() => {
     const fetchDataSV = async () => {
       try {
-        const response = await axios.post("http://localhost:3000/api/tracuu", {
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu`, {
           hocky: hocKy,
-          masv: masv,
-        })
+          masv: selectedItemCode, // Ưu tiên sử dụng selectedItemCode nếu có, nếu không dùng masv
+        });
         setTab11HTML(response.data.tab11HTML);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
-    }
+    };
 
     if (tracuu) {
-      fetchDataSV()
-      settracuu(false)
+      fetchDataSV();
+      setTracuu(false);
     }
-  }, [tracuu])
+  }, [tracuu]);
+
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      if (masv.length >= 6) {
+        try {
+          const response = await axios.put(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu`, {
+            masv: masv,
+          });
+          setStudentData(response.data);
+        } catch (error) {
+          console.error(error);
+        }
+      } else {
+        setStudentData([]);
+      }
+    };
+
+    fetchStudentData();
+  }, [masv]);
 
   const handleSubmit = () => {
-    settracuu(true)
-  }
+    setSelectedItemCode(""); // Xóa selectedItemCode khi tìm kiếm trực tiếp
+    setTracuu(true);
+  };
+
+  const handleSelectStudent = (student: Student) => {
+    setMasv(`${student.itemCode} - ${student.itemName}`); // Hiển thị mã và tên
+    setSelectedItemCode(student.itemCode); // Lưu mã sinh viên vào selectedItemCode để tìm kiếm
+    setStudentData([]); // Ẩn danh sách sau khi chọn
+    setTracuu(true); // Kích hoạt tra cứu ngay khi chọn sinh viên từ autocomplete
+  };
 
   return (
     <div>
@@ -47,20 +82,33 @@ const Page = () => {
         Thời khóa biểu sinh viên
       </div>
       <div className='p-2 flex gap-5'>
-        <div className='flex w-8/12 '>
+        <div className='flex w-8/12 relative'>
           <Input
             type="text"
             placeholder="Mã sinh viên"
             className='rounded-r-none focus-visible:ring-offset-0 focus-visible:ring-1 ring-black focus-visible:ring-green-500'
             value={masv}
-            onChange={(e) => setMasv(e.target.value)} // Lưu giá trị vào state
+            onChange={(e) => setMasv(e.target.value)}
           />
-          <Button type="submit" className='rounded-l-none' onClick={handleSubmit}>
+          <Button className='rounded-l-none' onClick={handleSubmit}>
             Tra cứu
           </Button>
+          {studentData.length > 0 && ( 
+            <div className="absolute z-10 rounded-b-lg top-10 bg-white border border-gray-300 w-11/12 max-h-60 overflow-y-auto">
+              {studentData.map((student) => (
+                <div
+                  key={student.id}
+                  className="p-2 hover:bg-gray-200 cursor-pointer"
+                  onClick={() => handleSelectStudent(student)} // Xử lý khi chọn sinh viên
+                >
+                  {student.itemCode} - {student.itemName}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         <div className='w-6/12'>
-          <Select value={hocKy} onValueChange={(value) => setHocKy(value)}> {/* Lấy giá trị từ Select */}
+          <Select value={hocKy} onValueChange={(value) => setHocKy(value)}>
             <SelectTrigger className="w-8/12">
               <SelectValue placeholder="Học kỳ 1, 2024-2025" />
             </SelectTrigger>
@@ -84,25 +132,23 @@ const Page = () => {
           </Select>
         </div>
       </div>
-      <div className=""> 
+      <div className="">
         <div className="p-2">
-          {!tab11HTML ?
+          {!tab11HTML ? (
             <div>
               <div className="p-5 border rounded-lg shadow-lg flex justify-center items-center">
                 <span>Chưa có dữ liệu</span>
               </div>
             </div>
-            :
-            <div className="border p-2 rounded-lg shadow-xl">
+          ) : (
+            <div className="rounded-2xl">
               <div className="" dangerouslySetInnerHTML={{ __html: tab11HTML }} />
-            </div>}
+            </div>
+          )}
         </div>
       </div>
-      <div className=" w-full p-2 bg-yellow-300">
-        conmeo
-      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Page
+export default Page;
