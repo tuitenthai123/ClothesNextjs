@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Cookies from "js-cookie";
 
 const Page = () => {
   interface Student {
@@ -22,22 +23,42 @@ const Page = () => {
   const [tracuu, setTracuu] = useState(false);
   const [hocKy, setHocKy] = useState("42");
   const [masv, setMasv] = useState("");
-  const [selectedItemCode, setSelectedItemCode] = useState(""); 
+  const [selectedItemCode, setSelectedItemCode] = useState("");
   const [tab11HTML, setTab11HTML] = useState<string>('');
   const [studentData, setStudentData] = useState<Student[]>([]);
+  const [loginstatus, setLoginStatus] = useState("");
 
   useEffect(() => {
     const fetchDataSV = async () => {
       try {
         const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu`, {
           hocky: hocKy,
-          masv: selectedItemCode, // Ưu tiên sử dụng selectedItemCode nếu có, nếu không dùng masv
+          masv: selectedItemCode,
         });
         setTab11HTML(response.data.tab11HTML);
       } catch (error) {
         console.error(error);
       }
     };
+
+    const fetchDataSVlogin = async () => {
+      try {
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu`, {
+          hocky: hocKy,
+          masv: Cookies.get("mssv"),
+        });
+        setTab11HTML(response.data.tab11HTML);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    const status = Cookies.get("login") || "";
+    setLoginStatus(status);
+
+    if (status === "true") {
+      fetchDataSVlogin();
+      setMasv(`${Cookies.get("mssv")} - ${Cookies.get("name")}`)
+    }
 
     if (tracuu) {
       fetchDataSV();
@@ -64,10 +85,18 @@ const Page = () => {
     fetchStudentData();
   }, [masv]);
 
-  const handleSubmit = () => {
-    setSelectedItemCode(""); // Xóa selectedItemCode khi tìm kiếm trực tiếp
-    setTracuu(true);
+  const handleSubmit = async () => {
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu`, {
+        hocky: hocKy,
+        masv: masv.trim(), // Sử dụng trực tiếp masv từ input
+      });
+      setTab11HTML(response.data.tab11HTML); // Cập nhật kết quả tra cứu
+    } catch (error) {
+      console.error(error);
+    }
   };
+
 
   const handleSelectStudent = (student: Student) => {
     setMasv(`${student.itemCode} - ${student.itemName}`); // Hiển thị mã và tên
@@ -93,7 +122,7 @@ const Page = () => {
           <Button className='rounded-l-none' onClick={handleSubmit}>
             Tra cứu
           </Button>
-          {studentData.length > 0 && ( 
+          {studentData.length > 0 && (
             <div className="absolute z-10 rounded-b-lg top-10 bg-white border border-gray-300 w-11/12 max-h-60 overflow-y-auto">
               {studentData.map((student) => (
                 <div

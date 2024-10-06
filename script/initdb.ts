@@ -5,9 +5,10 @@ const prisma = new PrismaClient();
 async function main() {
   const themkh = await prisma.user.create({
     data:{
-        masv:"21004148",
-        name:"Nguyễn Châu Hoàng Thái",
+        masv:"21004100",
+        name:" Nguyễn Minh Tài",
         password:"123456789",
+        role:"admin"
     }
   })
 }

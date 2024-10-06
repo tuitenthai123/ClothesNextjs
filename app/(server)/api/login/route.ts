@@ -4,16 +4,12 @@ export async function POST(request: Request) {
     try {
         const res = await request.json();
         const { masv, password } = res;
-
-        // Tìm kiếm người dùng có mã sinh viên (masv) và mật khẩu (password) phù hợp
         const response = await db.user.findMany({
             where: {
                 masv: masv,
                 password: password,
             },
         });
-
-        // Kiểm tra nếu không tìm thấy người dùng nào
         let statuslogin;
         if (response.length === 0) {
             statuslogin = "false";
@@ -22,7 +18,7 @@ export async function POST(request: Request) {
         }
 
         // Trả về phản hồi với trạng thái đăng nhập
-        return new Response(JSON.stringify({ status: statuslogin }), {
+        return new Response(JSON.stringify({ status: statuslogin,info:response }), {
             status: 200,
         });
     } catch (error) {

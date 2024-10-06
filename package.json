@@ -48,6 +48,7 @@
     "embla-carousel-react": "^8.3.0",
     "flowbite-react": "^0.10.2",
     "input-otp": "^1.2.4",
+    "js-cookie": "^3.0.5",
     "lucide-react": "^0.447.0",
     "next": "14.2.13",
     "next-themes": "^0.3.0",
@@ -56,6 +57,7 @@
     "react-dom": "^18",
     "react-hook-form": "^7.53.0",
     "react-resizable-panels": "^2.1.4",
+    "react-toastify": "^10.0.5",
     "recharts": "^2.12.7",
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.2",
@@ -64,6 +66,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
