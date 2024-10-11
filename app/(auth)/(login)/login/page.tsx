@@ -1,33 +1,65 @@
-"use client"
-import { Logo } from '@/app/(dashboard)/_components/logo'
+"use client";
+import { Logo } from '@/app/(dashboard)/_components/logo';
 import axios from 'axios';
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import Cookies from 'js-cookie';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useRouter } from 'next/navigation'; 
 
 const page = () => {
     const [masv, setmasv] = useState("");
     const [password, setpassword] = useState("");
+    const router = useRouter();
 
     const handlelogin = async () => {
-        const statuslogin = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/login`, {
-            masv: masv.trim(),
-            password: password.trim()
-        })
-        console.log(statuslogin)
-        if (statuslogin.data.status === "true") {
-            Cookies.set("login", "true")
-            Cookies.set("id", statuslogin.data.info[0].id)
-            Cookies.set("mssv", statuslogin.data.info[0].masv)
-            Cookies.set("name", statuslogin.data.info[0].name)
-            Cookies.set("role", statuslogin.data.info[0].role)
-            window.location.href = "/"
-        } else {
-            toast.error("Lỗi thông tin đăng nhập vui lòng thử lại sau!", { autoClose: 5000, closeOnClick: true, pauseOnHover: true,theme:"light" })
-            Cookies.set("login", "false")
+        try {
+            const statuslogin = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/login`, {
+                masv: masv.trim(),
+                password: password.trim()
+            });
+
+            console.log(statuslogin);
+
+            if (statuslogin.data.status === "true") {
+                Cookies.set("login", "true");
+                Cookies.set("id", statuslogin.data.info[0].id);
+                Cookies.set("mssv", statuslogin.data.info[0].masv);
+                Cookies.set("name", statuslogin.data.info[0].name);
+                Cookies.set("role", statuslogin.data.info[0].role);
+
+                switch (statuslogin.data.info[0].role) {
+                    case "sv":
+                        router.push("/sinhvien/tkbsinhvien");
+                        break;
+                    case "gv":
+                        router.push("/giangvien/tkbgv");
+                        break;
+                    case "admin":
+                        router.push("/admin/quanly");
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                toast.error("Lỗi thông tin đăng nhập, vui lòng thử lại sau!", {
+                    autoClose: 5000,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    theme: "light",
+                });
+                Cookies.set("login", "false");
+            }
+        } catch (error) {
+            console.error("Lỗi đăng nhập:", error);
+            toast.error("Có lỗi xảy ra khi đăng nhập, vui lòng thử lại!", {
+                autoClose: 5000,
+                closeOnClick: true,
+                pauseOnHover: true,
+                theme: "light",
+            });
         }
-    }
+    };
 
     return (
         <section className="bg-gray-100 dark:bg-gray-900">

@@ -12,17 +12,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
 
 const Page = () => {
-
   interface Student {
     id: number;
     itemCode: string;
-    itemName: string; 
+    itemName: string;
   }
-  
-  const router = useRouter();
+
   const [tracuu, setTracuu] = useState(false);
   const [hocKy, setHocKy] = useState("42");
   const [masv, setMasv] = useState("");
@@ -32,24 +29,9 @@ const Page = () => {
   const [loginstatus, setLoginStatus] = useState("");
 
   useEffect(() => {
-    const role = Cookies.get("role")
-    switch (role) {
-      case "sv":
-          router.push("/sinhvien/tkbsinhvien");
-          break;
-      case "gv":
-          router.push("/giangvien/tkbgv");
-          break;
-      case "admin":
-          router.push("/admin/quanly");
-          break;
-      default:
-          break;
-  }
-
     const fetchDataSV = async () => {
       try {
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu/sinhvien`, {
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu/giangvien`, {
           hocky: hocKy,
           masv: selectedItemCode,
         });
@@ -61,7 +43,7 @@ const Page = () => {
 
     const fetchDataSVlogin = async () => {
       try {
-        const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu/sinhvien`, {
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu/giangvien`, {
           hocky: hocKy,
           masv: Cookies.get("mssv"),
         });
@@ -88,7 +70,7 @@ const Page = () => {
     const fetchStudentData = async () => {
       if (masv.length >= 6) {
         try {
-          const response = await axios.put(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu/sinhvien`, {
+          const response = await axios.put(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu/giangvien`, {
             masv: masv,
           });
           setStudentData(response.data);
@@ -105,11 +87,11 @@ const Page = () => {
 
   const handleSubmit = async () => {
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu/sinhvien`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu/giangvien`, {
         hocky: hocKy,
-        masv: masv.trim(), // Sử dụng trực tiếp masv từ input
+        masv: masv.trim(), 
       });
-      setTab11HTML(response.data.tab11HTML); // Cập nhật kết quả tra cứu
+      setTab11HTML(response.data.tab11HTML); 
     } catch (error) {
       console.error(error);
     }
@@ -117,16 +99,16 @@ const Page = () => {
 
 
   const handleSelectStudent = (student: Student) => {
-    setMasv(`${student.itemCode} - ${student.itemName}`); // Hiển thị mã và tên
-    setSelectedItemCode(student.itemCode); // Lưu mã sinh viên vào selectedItemCode để tìm kiếm
-    setStudentData([]); // Ẩn danh sách sau khi chọn
-    setTracuu(true); // Kích hoạt tra cứu ngay khi chọn sinh viên từ autocomplete
+    setMasv(`${student.itemCode} - ${student.itemName}`);
+    setSelectedItemCode(student.itemCode);
+    setStudentData([]); 
+    setTracuu(true); 
   };
 
   return (
     <div>
       <div className='p-2 text-xl'>
-        Thời khóa biểu sinh viên
+        Thời khóa biểu giảng viên
       </div>
       <div className='p-2 flex gap-5'>
         <div className='flex w-8/12 relative'>
@@ -146,7 +128,7 @@ const Page = () => {
                 <div
                   key={student.id}
                   className="p-2 hover:bg-gray-200 cursor-pointer"
-                  onClick={() => handleSelectStudent(student)} // Xử lý khi chọn sinh viên
+                  onClick={() => handleSelectStudent(student)}
                 >
                   {student.itemCode} - {student.itemName}
                 </div>

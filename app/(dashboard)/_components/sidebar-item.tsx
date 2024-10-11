@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 interface SidebarItemProps {
   icon: LucideIcon;
-  label: string;
+  label: React.ReactNode;
   href: string;
 };
 
@@ -29,6 +29,7 @@ export const SidebarItem = ({
   }
 
   return (
+    <>
     <button
       onClick={onClick}
       type="button"
@@ -45,7 +46,7 @@ export const SidebarItem = ({
             isActive && "text-sky-700"
           )}
         />
-        {label}
+        <span>{label}</span>
       </div>
       <div
         className={cn(
@@ -54,5 +55,6 @@ export const SidebarItem = ({
         )}
       />
     </button>
+    </>
   )
 }

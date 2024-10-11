@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,41 +12,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
 
 const Page = () => {
-
   interface Student {
     id: number;
-    itemCode: string;
+    itemCode: string; 
     itemName: string; 
   }
-  
-  const router = useRouter();
+
   const [tracuu, setTracuu] = useState(false);
   const [hocKy, setHocKy] = useState("42");
   const [masv, setMasv] = useState("");
   const [selectedItemCode, setSelectedItemCode] = useState("");
   const [tab11HTML, setTab11HTML] = useState<string>('');
   const [studentData, setStudentData] = useState<Student[]>([]);
-  const [loginstatus, setLoginStatus] = useState("");
-
+  const datauser = useRef("true");
   useEffect(() => {
-    const role = Cookies.get("role")
-    switch (role) {
-      case "sv":
-          router.push("/sinhvien/tkbsinhvien");
-          break;
-      case "gv":
-          router.push("/giangvien/tkbgv");
-          break;
-      case "admin":
-          router.push("/admin/quanly");
-          break;
-      default:
-          break;
-  }
-
     const fetchDataSV = async () => {
       try {
         const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu/sinhvien`, {
@@ -58,7 +39,7 @@ const Page = () => {
         console.error(error);
       }
     };
-
+  
     const fetchDataSVlogin = async () => {
       try {
         const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu/sinhvien`, {
@@ -70,14 +51,16 @@ const Page = () => {
         console.error(error);
       }
     };
-    const status = Cookies.get("login") || "";
-    setLoginStatus(status);
-
-    if (status === "true") {
+  
+    console.log("truoc", datauser.current);
+    if (datauser.current === "true") {
       fetchDataSVlogin();
-      setMasv(`${Cookies.get("mssv")} - ${Cookies.get("name")}`)
+      setMasv(`${Cookies.get("mssv")} - ${Cookies.get("name")}`);
+      datauser.current = "false";
+      console.log("conmeohehehe");
     }
-
+    console.log("sau", datauser.current);
+  
     if (tracuu) {
       fetchDataSV();
       setTracuu(false);
@@ -107,9 +90,9 @@ const Page = () => {
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu/sinhvien`, {
         hocky: hocKy,
-        masv: masv.trim(), // Sử dụng trực tiếp masv từ input
+        masv: masv.trim(), 
       });
-      setTab11HTML(response.data.tab11HTML); // Cập nhật kết quả tra cứu
+      setTab11HTML(response.data.tab11HTML); 
     } catch (error) {
       console.error(error);
     }
@@ -117,10 +100,10 @@ const Page = () => {
 
 
   const handleSelectStudent = (student: Student) => {
-    setMasv(`${student.itemCode} - ${student.itemName}`); // Hiển thị mã và tên
-    setSelectedItemCode(student.itemCode); // Lưu mã sinh viên vào selectedItemCode để tìm kiếm
-    setStudentData([]); // Ẩn danh sách sau khi chọn
-    setTracuu(true); // Kích hoạt tra cứu ngay khi chọn sinh viên từ autocomplete
+    setMasv(`${student.itemCode} - ${student.itemName}`);
+    setSelectedItemCode(student.itemCode); 
+    setStudentData([]); 
+    setTracuu(true);
   };
 
   return (

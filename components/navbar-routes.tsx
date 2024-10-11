@@ -29,7 +29,9 @@ export const NavbarRoutes = () => {
     Cookie.remove("id");
     Cookie.remove("mssv");
     Cookie.remove("name");
+    Cookie.remove("role");
     Cookie.set("login", "false");
+    window.location.href="/login"
     setLoginStatus("false");
   };
 

@@ -5,7 +5,7 @@ export async function POST(request: Request) {
     try {
         const res = await request.json();
         const { hocky, masv } = res;
-        const response = await axios.post(`https://ems.vlute.edu.vn/vTKBSinhVien/ViewTKBSV?hocky=${hocky}&masv=${masv}`);
+        const response = await axios.post(`https://ems.vlute.edu.vn/vTKBGiangVien/ViewTKBGV?hocky=${hocky}&magv=${masv}`);
         const html = response.data;
         const $ = cheerio.load(html);
         $('#tab_11 table tbody tr.text-bold.info').each((index, element) => {
@@ -34,9 +34,9 @@ export async function PUT(request: Request) {
         const { masv } = res;
 
         // Gửi yêu cầu GET đến API
-        const response = await axios.get(`https://ems.vlute.edu.vn/api/danhmuc/getsvbykeyword/${masv}`);
+        const response = await axios.get(`https://ems.vlute.edu.vn/api/danhmuc/getgiangvienbykeyword/${masv}`);
 
-        // Chỉ lấy dữ liệu cần thiết từ response
+        // Chỉ lấy dữ liệu cần thiết từ response    
         const data = response.data;
 
         // Trả về dữ liệu dưới dạng JSON

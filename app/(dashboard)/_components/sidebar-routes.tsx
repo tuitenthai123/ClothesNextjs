@@ -1,42 +1,79 @@
 "use client";
 
-import { FileCog , List,CalendarDays,BookMarked } from "lucide-react";
-import { usePathname } from "next/navigation";
-
+import { useEffect, useState } from "react";
+import { List, CalendarDays, BookMarked,UserRoundPen  } from "lucide-react";
+import Cookies from "js-cookie";
 import { SidebarItem } from "./sidebar-item";
 
 const guestRoutes = [
   {
     icon: CalendarDays,
-    label: "Thời khóa biểu",
+    label: "Thời khóa biểu sinh viên",
     href: "/",
+  },
+];
+
+const sinhvienRoutes = [
+  {
+    icon: CalendarDays,
+    label: <p>Thời khóa biểu sinh viên</p>,
+    href: "/sinhvien/tkbsinhvien",
   },
   {
     icon: BookMarked,
-    label: "Môn học",
-    href: "/monhoc",
+    label: <p>Môn học</p>,
+    href: "/sinhvien/monhoc",
   },
 ];
 
 const teacherRoutes = [
   {
-    icon: FileCog,
-    label: "Chỉnh sửa khóa học",
-    href: "/teacher/course",
+    icon: CalendarDays,
+    label: "Lịch giảng viên",
+    href: "/giangvien/tkbgv",
   },
   {
     icon: List,
     label: "Quản lý khóa học",
-    href: "/teacher/manager",
+    href: "/giangvien/manager",
   },
-]
+];
+
+const adminRoutes = [
+  {
+    icon: UserRoundPen,
+    label: "Quản lý tài khoản",
+    href: "/admin/quanly",
+  },
+
+];
 
 export const SidebarRoutes = () => {
-  const pathname = usePathname();
+  const [role, setRole] = useState<string | null>(null);
+  useEffect(() => {
+    const cookieRole = Cookies.get("role");
+    setRole(cookieRole || "guest"); 
+  }, []);
 
-  const isTeacherPage = pathname?.includes("/teacher");
+  let routes;
 
-  const routes = isTeacherPage ? teacherRoutes : guestRoutes;
+  switch (role) {
+    case "sv":
+      routes = sinhvienRoutes;
+      break;
+    case "gv":
+      routes = teacherRoutes;
+      break;
+    case "admin":
+      routes = adminRoutes;
+      break;
+    default:
+      routes = guestRoutes;
+      break;
+  }
+
+  // Chỉ render khi role đã được lấy
+  if (!role) return null;
 
   return (
     <div className="flex flex-col w-full">
@@ -49,5 +86,5 @@ export const SidebarRoutes = () => {
         />
       ))}
     </div>
-  )
-}
+  );
+};
