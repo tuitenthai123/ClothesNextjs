@@ -127,7 +127,6 @@ export const columns: ColumnDef<User>[] = [
                         password: newPassword,
                         role: newRole,
                     });
-                    console.log(response)
                     if (response?.data?.status) {
                         toast.success("chỉnh sửa thành công", {
                             autoClose: 2000,

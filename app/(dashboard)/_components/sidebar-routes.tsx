@@ -11,6 +11,11 @@ const guestRoutes = [
     label: "Thời khóa biểu sinh viên",
     href: "/",
   },
+  {
+    icon: BookMarked,
+    label: <p>Khóa học</p>,
+    href: "/books",
+  },
 ];
 
 const sinhvienRoutes = [
@@ -21,9 +26,10 @@ const sinhvienRoutes = [
   },
   {
     icon: BookMarked,
-    label: <p>Môn học</p>,
-    href: "/sinhvien/monhoc",
+    label: <p>Khóa học</p>,
+    href: "/books",
   },
+
 ];
 
 const teacherRoutes = [
@@ -37,6 +43,11 @@ const teacherRoutes = [
     label: "Quản lý khóa học",
     href: "/giangvien/manager",
   },
+  {
+    icon: BookMarked,
+    label: <p>Khóa học</p>,
+    href: "/books",
+  },
 ];
 
 const adminRoutes = [
@@ -45,7 +56,6 @@ const adminRoutes = [
     label: "Quản lý tài khoản",
     href: "/admin/quanly",
   },
-
 ];
 
 export const SidebarRoutes = () => {

@@ -19,8 +19,6 @@ const page = () => {
                 password: password.trim()
             });
 
-            console.log(statuslogin);
-
             if (statuslogin.data.status === "true") {
                 Cookies.set("login", "true");
                 Cookies.set("id", statuslogin.data.info[0].id);

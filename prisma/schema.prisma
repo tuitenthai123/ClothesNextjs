@@ -16,13 +16,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id            String       @default(cuid()) @id
-  masv          String?      @default("")
-  name          String?      @default("")
-  password      String?      @default("")
-  role          String?      @default("sv")
-  createdAt     DateTime  @default(now()) @map(name: "created_at")
-  updatedAt     DateTime  @updatedAt @map(name: "updated_at")
+  id        String   @id @default(cuid())
+  masv      String?  @default("")
+  name      String?  @default("")
+  password  String?  @default("")
+  role      String?  @default("sv")
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updatedAt DateTime @updatedAt @map(name: "updated_at")
+}
+
+model Khoahoc {
+  id_khoa   String   @id @default(uuid())
+  tenchuong String?  @default("")
+  mota      String?  @default("")
+  magv      String?  @default("")
+  tentacgia String?  @default("")
+  image     String?  @default("")
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updatedAt DateTime @updatedAt @map(name: "updated_at")
+}
+
+model Chapter {
+  id_chuong       String   @id @default(uuid())
+  id_khoahoc      String?  @default("")
+  ten_chuong      String?  @default("")
+  version         String?  @default("1.0.0")
+  tentacgia       String?  @default("")
+  soluongsinhvien Int?     @default(0)
+  content         String?  @default("")
+  createdAt       DateTime @default(now()) @map(name: "created_at")
+  updatedAt       DateTime @updatedAt @map(name: "updated_at")
 }

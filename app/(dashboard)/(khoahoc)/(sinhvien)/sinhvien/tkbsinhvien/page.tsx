@@ -52,15 +52,11 @@ const Page = () => {
       }
     };
   
-    console.log("truoc", datauser.current);
     if (datauser.current === "true") {
       fetchDataSVlogin();
       setMasv(`${Cookies.get("mssv")} - ${Cookies.get("name")}`);
       datauser.current = "false";
-      console.log("conmeohehehe");
-    }
-    console.log("sau", datauser.current);
-  
+    } 
     if (tracuu) {
       fetchDataSV();
       setTracuu(false);

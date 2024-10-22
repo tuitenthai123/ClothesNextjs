@@ -19,9 +19,6 @@ export async function POST(request: Request) {
                 },
             },
         });
-
-        console.log("Deleted users:", response);
-
         return new Response(
             JSON.stringify({ status: true, deletedCount: response.count }),
             { status: 200 }

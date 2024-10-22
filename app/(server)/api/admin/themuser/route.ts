@@ -13,7 +13,6 @@ export async function POST(request: Request) {
                 role
             },
         })
-        console.log(response)
         return new Response(JSON.stringify({ status: response }), {
             status: 200,
         });
