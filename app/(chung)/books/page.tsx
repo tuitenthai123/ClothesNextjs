@@ -1,7 +1,8 @@
 "use client"
 import BookCard from '@/components/bookcard';
 import React from 'react'
-import Cookies from 'js-cookie';
+import { Breadcrumb } from "flowbite-react";
+import { HiHome } from "react-icons/hi";
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 

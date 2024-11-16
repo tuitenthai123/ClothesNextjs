@@ -2,14 +2,15 @@
 import * as React from "react";
 import dynamic from "next/dynamic";
 import axios from "axios";
-import Cookies from "js-cookie";
 import { useRouter, useParams } from "next/navigation";
 import { IoArrowBack, IoSave } from "react-icons/io5";
+import { Spinner } from "flowbite-react";
+import { sleep } from '@/lib/sleep';
+import { Switch } from "@/components/ui/switch"
 import 'react-toastify/dist/ReactToastify.css';
 import "froala-editor/js/plugins.pkgd.min.js";
 import "froala-editor/css/froala_editor.pkgd.min.css";
 import "froala-editor/css/froala_style.min.css";
-import { Switch } from "@/components/ui/switch"
 const Froala = dynamic(() => import("react-froala-wysiwyg"), { ssr: false });
 
 const froalaEditorConfig = {
@@ -90,11 +91,28 @@ const froalaEditorConfig = {
 };
 
 export default function page(): React.ReactElement {
-    const params = useParams<{ khoahoc: string }>();
+    const params = useParams<{ khoahoc: string, chuong: string }>();
     const router = useRouter();
     const [model, setModel] = React.useState<string>("");
+    const [Baitap, setBaitap] = React.useState<boolean>(false);
     const [title, setTitle] = React.useState<string>("New Page");
-    const [nopbaitap, setnopbaitap] = React.useState(false);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        setLoading(true);
+        const fetchdata = async () => {
+            const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu/khoahoc/chuong`, {
+                makhoahoc: params?.chuong
+            });
+            setTitle(response?.data[0].ten_chuong || "")
+            setModel(response?.data[0].content || "")
+            setBaitap(response?.data[0].baitap || false)
+            await sleep(1000);
+            setLoading(false);
+
+        };
+        fetchdata();
+    }, []);
 
     const onModelChange = (newModel: string) => {
         setModel(newModel);
@@ -102,20 +120,29 @@ export default function page(): React.ReactElement {
 
     const handleSavemodel = async () => {
         try {
-            const author = Cookies.get("name");
             const dataToSend = {
                 title: title,
                 content: model,
-                tacgia: author,
-                id_khoahoc: params?.khoahoc,
-                baitap: nopbaitap
+                id_chuong: params?.chuong,
+                baitap: Baitap
             };
-            const chapter_id = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/giangvien/taochuong`, dataToSend);
-            router.push(`/books/${params?.khoahoc}/${chapter_id?.data?.id_chuong}`)
+            await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/giangvien/updatechuong`, dataToSend);
+            router.push(`/books/${params?.khoahoc}/${params?.chuong}`)
         } catch (error) {
             console.error("Error saving model:", error);
         }
     };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center flex-1 h-full">
+                <div className="flex gap-3 justify-center items-center">
+                    <Spinner aria-label="Default status example" size="xl" />
+                    <span className="text-gray-500 text-2xl font-bold">Đang tải...</span>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="bg-white border rounded-lg shadow-md p-5 h-auto">
@@ -136,11 +163,11 @@ export default function page(): React.ReactElement {
                     </button>
                 </div>
             </div>
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-5 justify-center">
                 <input
                     type="text"
                     value={title}
-                    className="w-full p-3 text-2xl font-semibold border-b-2 border-gray-300 rounded-xl focus:outline-none"
+                    className="w-full p-3 mb-4 text-2xl font-semibold border-b-2 border-gray-300 rounded-xl focus:outline-none"
                     onChange={(e) => setTitle(e.target.value)}
                     onClick={(e) => (e.target as HTMLInputElement).select()}
                 />
@@ -152,7 +179,7 @@ export default function page(): React.ReactElement {
                 />
                 <div className="flex items-center gap-3">
                     <span className="font-bold text-xl">Yêu cầu nộp bài: </span>
-                    <Switch onCheckedChange={() => { setnopbaitap(!nopbaitap) }} />
+                    <Switch defaultChecked={Baitap} onCheckedChange={() => { setBaitap(!Baitap) }} />
                 </div>
             </div>
 

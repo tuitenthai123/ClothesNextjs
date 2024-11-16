@@ -1,11 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-// schema.prisma
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["fullTextIndex", "fullTextSearch"]
@@ -18,33 +10,92 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
-  masv      String?  @default("")
+  masv      String?  @unique @default("")
   name      String?  @default("")
   password  String?  @default("")
   role      String?  @default("sv")
   createdAt DateTime @default(now()) @map(name: "created_at")
   updatedAt DateTime @updatedAt @map(name: "updated_at")
+
+  // Thêm quan hệ ngược với Enrollment
+  ghidanhs   Ghidanh[] // Một người dùng có thể có nhiều ghi danh
+  submission Submission[]
 }
 
 model Khoahoc {
-  id_khoa   String   @id @default(uuid())
-  tenchuong String?  @default("")
-  mota      String?  @default("")
-  magv      String?  @default("")
-  tentacgia String?  @default("")
-  image     String?  @default("")
-  createdAt DateTime @default(now()) @map(name: "created_at")
-  updatedAt DateTime @updatedAt @map(name: "updated_at")
+  id_khoa         String       @id @default(uuid())
+  tenchuong       String?      @default("")
+  mota            String?      @default("")
+  magv            String?      @default("")
+  tentacgia       String?      @default("")
+  image           String?      @default("")
+  permission      String?      @default("view")
+  soluongsinhvien Int?         @default(0)
+  createdAt       DateTime     @default(now()) @map(name: "created_at")
+  updatedAt       DateTime     @updatedAt @map(name: "updated_at")
+  ghidanhs        Ghidanh[]
+  submission      Submission[]
 }
 
 model Chapter {
-  id_chuong       String   @id @default(uuid())
-  id_khoahoc      String?  @default("")
-  ten_chuong      String?  @default("")
-  version         String?  @default("1.0.0")
-  tentacgia       String?  @default("")
-  soluongsinhvien Int?     @default(0)
-  content         String?  @default("")
-  createdAt       DateTime @default(now()) @map(name: "created_at")
-  updatedAt       DateTime @updatedAt @map(name: "updated_at")
+  id_chuong  String   @id @default(uuid())
+  id_khoahoc String?  @default("")
+  ten_chuong String?  @default("")
+  version    String?  @default("1.0.0")
+  tentacgia  String?  @default("")
+  content    String?  @default("")
+  permission String?  @default("view")
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  updatedAt  DateTime @updatedAt @map(name: "updated_at")
+  baitap     Boolean  @default(false)
+
+  submission Submission[]
+}
+
+model Kiemtra {
+  id_kiemtra  String  @id @default(uuid())
+  id_khoahoc  String? @default("")
+  ten_kiemtra String? @default("Kiểm tra môn học")
+  passkiemtra String? @default("")
+  questions   Json?   @default("{}")
+  ngaybatdau  String? @default("")
+  endtime     String? @default("")
+}
+
+model Diem {
+  id_diem    String  @id @default(uuid())
+  userId     String? @default("")
+  username   String? @default("")
+  kiemtraId  String? @default("")
+  id_khoahoc String? @default("")
+  diemso     Float?  @default(0)
+}
+
+model Ghidanh {
+  id         String   @id @default(uuid())
+  userId     String
+  khoahocId  String
+  enrolledAt DateTime @default(now())
+  status     String   @default("active")
+
+  user    User    @relation(fields: [userId], references: [masv], onDelete: Cascade)
+  khoahoc Khoahoc @relation(fields: [khoahocId], references: [id_khoa], onDelete: Cascade)
+
+  @@unique([userId, khoahocId])
+}
+
+model Submission {
+  id          String   @id @default(uuid())
+  userId      String   @default("")
+  fileName    String   @default("")
+  fileUrl     String   @default("")
+  khoahocId   String   @default("")
+  chapterId   String   @default("")
+  submittedAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [masv])
+  khoahoc Khoahoc @relation(fields: [khoahocId], references: [id_khoa])
+  chapter Chapter @relation(fields: [chapterId], references: [id_chuong])
+
+  @@index([userId, khoahocId, chapterId]) 
 }

@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { FaUserLarge, FaBook } from "react-icons/fa6";
+import { Table } from "flowbite-react";
 import { FaPlus } from "react-icons/fa";
 import { Avatar } from "flowbite-react";
 import { Separator } from "@/components/ui/separator"
@@ -9,6 +10,9 @@ import Cookies from 'js-cookie';
 import BookCard from '@/components/bookcard';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { Spinner } from "flowbite-react";
+import { sleep } from '@/lib/sleep';
+import Link from 'next/link';
 
 const Page = () => {
 
@@ -17,7 +21,14 @@ const Page = () => {
     role: string,
     maso: string,
   }
-
+  const customtheme = {
+    head: {
+      base: "group/head text-xs uppercase text-gray-700 dark:text-gray-400",
+      cell: {
+        base: "bg-gray-400/75 px-6 py-3 group-first/head:first:rounded-tl-lg group-first/head:last:rounded-tr-lg dark:bg-gray-700",
+      },
+    },
+  };
   interface KhoaHoc {
     id_khoa: string;
     tenchuong: string;
@@ -27,13 +38,17 @@ const Page = () => {
     createdAt: string;
     updatedAt: string;
     image: string;
+    permission: string;
+    soluongsinhvien: string;
   }
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [khoahoc, setkhoahoc] = useState<KhoaHoc[]>([])
+  const [khoahoc, setkhoahoc] = useState<KhoaHoc[]>([]);
+  const [loading, setLoading] = useState(true);
 
 
   useEffect(() => {
+    setLoading(true);
     const name = Cookies.get("name") || "";
     const role = Cookies.get("role") === "gv" ? "Giảng viên" : "Sinh viên";
     const maso = Cookies.get("mssv") || "";
@@ -41,8 +56,10 @@ const Page = () => {
     const handlefetchkhoahoc = async () => {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_HOST}/api/tracuu/khoahoc`, {
         maso
-      })
-      setkhoahoc(response?.data)
+      });
+      setkhoahoc(response?.data);
+      await sleep(2000);
+      setLoading(false);
     }
 
     setUser({
@@ -52,6 +69,18 @@ const Page = () => {
     });
     handlefetchkhoahoc()
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center flex-1 h-full">
+        <div className="flex gap-3 justify-center items-center">
+          <Spinner aria-label="Default status example" size="xl" />
+          <span className="text-gray-500 text-2xl font-bold">Đang tải...</span>
+        </div>
+      </div>
+    )
+  }
+
 
   return (
     <div>
@@ -64,7 +93,7 @@ const Page = () => {
             </span>
             <Separator className="my-2 w-[30%] font-semibold bg-slate-700/30 md:block hidden" />
           </div>
-          <div className='ring-1 ring-gray-400/40 shadow-lg rounded-xl p-5 flex gap-5 justify-between mx-3'>
+          <div className='ring-1 ring-gray-400/40 shadow-lg rounded-xl p-5 flex gap-5 justify-between mx-3 bg-white'>
             <div className='flex gap-5'>
               <Avatar className='flex rounded-2xl  justify-start items-start' size='lg' />
               <div className='flex flex-col'>
@@ -94,28 +123,47 @@ const Page = () => {
               </Button>
             </div>
           </div>
-          <div className='ring-1 ring-gray-400/40 shadow-xl rounded-xl p-5 flex justify-center items-center md:mx-24 mx-5'>
-          {khoahoc[1] ?
-          (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4 justify-center items-center">
-              {khoahoc.map((book) => (
-                <div onClick={()=>{
-                  router.push(`${process.env.NEXT_PUBLIC_HOST}/books/${book.id_khoa}`)
-                }}>
-                  <BookCard
-                    description={book.mota}
-                    key={book.id_khoa}
-                    image={book.image}
-                    title={book.tenchuong}
-                    createdTime={book.createdAt}
-                    updatedTime={book.updatedAt}
-                    author={book.tentacgia}
-                  />
+          <div className='mx-5'>
+            {khoahoc[0] ?
+              (
+                <div className="overflow-x-auto">
+                  <Table theme={customtheme} hoverable>
+                    <Table.Head>
+                      <Table.HeadCell>ID khóa học</Table.HeadCell>
+                      <Table.HeadCell>Tên khóa học</Table.HeadCell>
+                      <Table.HeadCell>Tác giả</Table.HeadCell>
+                      <Table.HeadCell className=' w-16 text-ellipsis overflow-hidden'>Ảnh</Table.HeadCell>
+                      <Table.HeadCell>Quyền</Table.HeadCell>
+                      <Table.HeadCell>Sỉ số</Table.HeadCell>
+                      <Table.HeadCell>
+                        <span className="sr-only">Chỉnh sửa</span>
+                      </Table.HeadCell>
+                    </Table.Head>
+                    <Table.Body className="divide-y">
+                      {khoahoc.map((item) => (
+                        <Table.Row
+                          className="bg-white dark:border-gray-700 dark:bg-gray-800 cursor-pointer"
+                          key={item.id_khoa}
+                        >
+                          <Table.Cell className="font-medium text-gray-900 dark:text-white" onClick={()=>{router.push(`/books/${item.id_khoa}`)}}>
+                            {item.id_khoa}
+                          </Table.Cell>
+                          <Table.Cell onClick={()=>{router.push(`/books/${item.id_khoa}`)}}>{item.tenchuong}</Table.Cell>
+                          <Table.Cell onClick={()=>{router.push(`/books/${item.id_khoa}`)}}>{item.tentacgia}</Table.Cell>
+                          <Table.Cell onClick={()=>{router.push(`/books/${item.id_khoa}`)}}> <span className='line-clamp-2'>{item.image}</span> </Table.Cell>
+                          <Table.Cell onClick={()=>{router.push(`/books/${item.id_khoa}`)}}>{item.permission}</Table.Cell>
+                          <Table.Cell onClick={()=>{router.push(`/books/${item.id_khoa}`)}}>{item.soluongsinhvien}</Table.Cell>
+                          <Table.Cell>
+                            <Link href={`/books/${item.id_khoa}/chinhsuabooks`} className="font-medium text-cyan-600 hover:underline dark:text-cyan-500">
+                              Edit
+                            </Link>
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table>
                 </div>
-
-              ))}
-            </div>
-            ): <span className='font-bold text-xl'>Hiện chưa tạo khóa học nào</span>}  
+              ) : <span className='font-bold text-xl'>Hiện chưa tạo khóa học nào</span>}
           </div>
         </div>
       </div>

@@ -4,14 +4,15 @@ import {generateRandomId} from "@/lib/randomID"
 export async function POST(request: Request) {
     try {
         const res = await request.json();
-        const { title,content,id_khoahoc,tacgia } = res;
+        const { title,content,id_khoahoc,tacgia,baitap } = res;
         const id_chuong = await generateRandomId(6);
         const resonse = await db.chapter.create({data:{
            id_chuong:id_chuong,
            id_khoahoc:id_khoahoc,
            ten_chuong:title,
            tentacgia:tacgia,
-           content:content
+           content:content,
+           baitap:baitap
         }}) 
         return new Response(JSON.stringify({ id_chuong }),{ status: 200 });
     } catch (error) {   

@@ -49,6 +49,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
+    "file-saver": "^2.0.5",
     "firebase": "^10.14.1",
     "flowbite-react": "^0.10.2",
     "formidable": "^3.5.1",
@@ -63,6 +64,7 @@
     "quill": "^2.0.2",
     "quill-resize-image": "^1.0.5",
     "quilljs": "^0.18.1",
+    "rc-time-picker": "^3.7.3",
     "react": "^18",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18",
@@ -77,9 +79,11 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.0.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/file-saver": "^2.0.7",
     "@types/formidable": "^3.4.5",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",

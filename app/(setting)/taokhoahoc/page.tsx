@@ -148,7 +148,7 @@ export default function FroalaEditor(): React.ReactElement {
           </div>
           <div className="grid place-items-end">
             <div className="flex gap-5">
-              <Button variant={"outline"}>Hủy</Button>
+              <Button variant={"outline"} onClick={()=>{route.push("/giangvien/manager")}}>Hủy</Button>
               <Button onClick={handleSaveChange}>Lưu chương</Button>
             </div>
           </div>
