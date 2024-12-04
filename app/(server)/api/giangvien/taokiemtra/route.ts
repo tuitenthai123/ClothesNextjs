@@ -6,13 +6,14 @@ export async function POST(request: Request) {
         const ID_kiemtra = await generateRandomId(6)
         const res = await request.json();
         const { combinedData } = res;
+
         const response  = await db.kiemtra.create({
             data:{
                 ten_kiemtra:combinedData?.testName || "Kiểm tra môn học",
                 id_kiemtra:ID_kiemtra,
                 id_khoahoc:combinedData?.id_khoahoc,
-                endtime:combinedData?.endTime,
-                ngaybatdau:combinedData?.startTime,
+                endtime:combinedData?.endDateTime,
+                ngaybatdau:combinedData?.startDateTime,
                 questions:combinedData?.questions
             }
         })

@@ -97,5 +97,13 @@ model Submission {
   khoahoc Khoahoc @relation(fields: [khoahocId], references: [id_khoa])
   chapter Chapter @relation(fields: [chapterId], references: [id_chuong])
 
-  @@index([userId, khoahocId, chapterId]) 
+  @@index([userId, khoahocId, chapterId])
+}
+
+model Kehoach {
+  id     String @id @default(uuid())
+  userId String @default("")
+  schedule  Json?
+  specialization  String?
+  hocky String? @default("42")
 }

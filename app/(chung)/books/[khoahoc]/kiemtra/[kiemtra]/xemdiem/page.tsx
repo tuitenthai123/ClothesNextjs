@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { Spinner } from "flowbite-react";
-import { sleep } from "@/lib/sleep";
 
 const page = () => {
     const router = useRouter();
@@ -109,7 +108,7 @@ const page = () => {
                     <IoArrowBack fontWeight={500} size={30} />
                     <span className="text-xl font-bold">Trở lại</span>
                 </button>
-                <div onClick={exportToExcel} className=" hover:bg-gray-700 p-2 rounded-lg bg-black text-white flex justify-center items-center">
+                <div onClick={exportToExcel} className="cursor-pointer hover:bg-gray-700 p-2 rounded-lg bg-black text-white flex justify-center items-center">
                     <pre className="flex"><HiOutlineSave size={25} /> <span> Lưu điểm</span></pre>
                 </div>
             </div>

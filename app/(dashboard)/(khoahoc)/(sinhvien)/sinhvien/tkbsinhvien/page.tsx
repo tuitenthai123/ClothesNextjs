@@ -125,7 +125,7 @@ const Page = () => {
                 <div
                   key={student.id}
                   className="p-2 hover:bg-gray-200 cursor-pointer"
-                  onClick={() => handleSelectStudent(student)} // Xử lý khi chọn sinh viên
+                  onClick={() => handleSelectStudent(student)}
                 >
                   {student.itemCode} - {student.itemName}
                 </div>

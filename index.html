@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 Temperature & Humidity Monitor</title>
+    <title>Điều khiển đèn MQTT</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"
+        type="text/javascript"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,99 +14,100 @@
             margin-top: 50px;
         }
 
-        h2 {
-            color: #333;
+        #lightControl {
+            margin-top: 20px;
         }
 
-        p {
-            font-size: 20px;
-        }
-
-        button {
-            font-size: 18px;
-            padding: 10px 20px;
-            margin: 10px;
-            cursor: pointer;
+        .status {
+            margin-top: 10px;
+            font-weight: bold;
         }
     </style>
 </head>
 
 <body>
-    <h2>ESP32 Temperature & Humidity Monitor</h2>
-    <p>Temperature: <span id="temperature">--</span> °C</p>
-    <p>Humidity: <span id="humidity">--</span> %</p>
+    <h1>Điều khiển đèn MQTT</h1>
 
-    <button onclick="controlLED('ON')">Turn LED ON</button>
-    <button onclick="controlLED('OFF')">Turn LED OFF</button>
+    <div id="lightControl">
+        <button id="lightOnBtn">Bật đèn</button>
+        <button id="lightOffBtn">Tắt đèn</button>
+    </div>
 
-    <!-- Import Paho MQTT Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"
-        type="text/javascript"></script>
-    <script src="https://code.jquery.com/jquery-3.6.1.min.js" type="text/javascript"></script>
+    <div class="status" id="status">
+        Trạng thái: Đèn tắt
+    </div>
+
     <script>
-            var client; // Declare client globally for persistent connection
-        
-            $(document).ready(function() {
-                connectToBroker(); 
-        
-                $('.bat').click(function(){
-                message = new Paho.MQTT.Message("on");
-                message.destinationName = "tuitenthai/conmeo/data";
-                client.send(message);
-            });
-                function connectToBroker() {
-                    client = new Paho.MQTT.Client("broker.emqx.io", Number(8083), "mqttx_9f08f604");
-        
-                    client.onConnectionLost = onConnectionLost;
-                    client.onMessageArrived = onMessageArrived;
-        
-                    client.connect({onSuccess:onConnect});
-                }
-        
-                function onConnect() {
-                    console.log("Connected");
-                    client.subscribe("esp32/led");
-                    client.subscribe("esp32/temperature");
-                    client.subscribe("esp32/humidity");
-                }
-        
-                function onConnectionLost(responseObject) {
-                    if (responseObject.errorCode !== 0) {
-                        console.log("Connection lost:", responseObject.errorMessage);
-                        // Optionally, attempt to reconnect here
-                    }
-                }
-        
-                function onMessageArrived(message) {
-                    console.log("Received message from", message.destinationName);
-                    console.log("Payload:", message.payloadString);
-                    if(message.destinationName === "esp32/temperature"){
-                        let t = document.getElementById("temperature")
-                        t.innerHTML = message.payloadString
-                    }
-                    if(message.destinationName === "esp32/humidity"){
-                        let h = document.getElementById("humidity")
-                        h.innerHTML = message.payloadString
-                    }
-                    // let jsonstring = message.payloadString
-                    // let paylot =jsonstring.split(",")
-                    // let t = document.getElementById("nhietdo")
-                    // let h = document.getElementById("doam")
-                    // t.innerHTML=paylot[0]
-                    // h.innerHTML=paylot[1]
-        
-                    // Process the received payload here (e.g., update UI, control LED)
-                    // You can use the payload data to turn on/off the LED or perform other actions
-                }
-            });
+        // Tạo client MQTT
+        var client = new Paho.MQTT.Client(
+            "p33a7a9a.ala.asia-southeast1.emqxsl.com",
+            Number(8084),                           
+            "clientId-asdasd" 
+        );
 
-            function controlLED(status) {
-            const message = new Paho.MQTT.Message(status);
-            message.destinationName = 'esp32/led';
-            client.send(message);
-            console.log(`Gửi lệnh LED: ${status}`);
+
+        client.onConnectionLost = onConnectionLost;
+
+        client.onMessageArrived = onMessageArrived;
+
+
+        client.connect({
+            useSSL: true,
+            userName: "haobadao", 
+            password: "123456",
+            onSuccess: onConnect,
+            mqttVersion: 4, 
+            onFailure: function (err) {
+                console.error("Kết nối thất bại:", err.errorMessage);
+            }
+        });
+
+        function onConnect() {
+            console.log("Đã kết nối thành công!");
+            client.subscribe("home/light/status"); 
         }
-        </script>
-</body>
 
-</html>
+
+        function onConnectionLost(responseObject) {
+            if (responseObject.errorCode !== 0) {
+                console.log("Mất kết nối: " + responseObject.errorMessage);
+            }
+        }
+
+
+        function onMessageArrived(message) {
+            console.log("Tin nhắn mới: " + message.payloadString);
+            var lightStatus = message.payloadString; 
+            updateLightStatus(lightStatus); 
+        }
+
+
+        function updateLightStatus(status) {
+            const statusElement = document.getElementById("status");
+            if (status === "on") {
+                statusElement.textContent = "Trạng thái: Đèn bật";
+} else if (status === "off") {
+                            statusElement.textContent = "Trạng thái: Đèn tắt";
+                        }
+                    }
+
+
+                    function controlLight(state) {
+                        var message = new Paho.MQTT.Message(state); 
+                        message.destinationName = "home/light/control";
+                        client.send(message);
+                    }
+
+
+                    document.getElementById("lightOnBtn").addEventListener("click", function () {
+                        controlLight("on");
+                    });
+
+
+                    document.getElementById("lightOffBtn").addEventListener("click", function () {
+                        controlLight("off");
+                    });
+                </script>
+    </body>
+    
+    </html>
