@@ -138,10 +138,9 @@ export default function TestScheduleSetup() {
     }
   }
 
-  // Function to disable past dates
   const disablePastDates = (date: Date) => {
     const today = new Date()
-    today.setHours(0, 0, 0, 0) // Set to start of the day for comparison
+    today.setHours(0, 0, 0, 0) 
     return date < today
   }
 

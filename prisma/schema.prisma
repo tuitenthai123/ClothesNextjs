@@ -107,3 +107,9 @@ model Kehoach {
   specialization  String?
   hocky String? @default("42")
 }
+
+model Caytientrinh {
+  id     String @id @default(uuid())
+  tenchuyennganh String
+  chuyennganh String
+}

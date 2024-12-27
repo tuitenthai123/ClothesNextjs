@@ -55,6 +55,7 @@
     "firebase": "^10.14.1",
     "flowbite-react": "^0.10.2",
     "formidable": "^3.5.1",
+    "framer-motion": "^11.13.1",
     "froala-editor": "^4.3.0",
     "googleapis": "^144.0.0",
     "html-react-parser": "^5.1.18",

@@ -95,7 +95,9 @@ const page = () => {
       });
 
       const responsenopbai = await axios.post("/api/tracuu/sinhvien/nopbai", {
-        maso: Cookies.get("mssv")
+        maso: Cookies.get("mssv"),
+        makhoahoc: params?.khoahoc,
+        machuong: params?.chuong
       })
       setdatanopbai(responsenopbai?.data[0])
       setnamefile(responsenopbai?.data[0]?.fileName)

@@ -49,11 +49,10 @@ const QuizPage = () => {
       } catch (err) {
         setError("Error fetching quiz data")
         console.error(err)
-      } finally {
-        setIsLoading(false)
       }
     }
     fetchData()
+    setIsLoading(false)
   }, [params?.kiemtra])
 
   if (isLoading) {

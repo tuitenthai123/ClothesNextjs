@@ -1,15 +1,16 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Plus, Trash, Edit, Clock, Calendar, Save } from 'lucide-react'
+import { Trash, Save, Calendar, X } from 'lucide-react'
 import Cookies from 'js-cookie'
 import axios from 'axios'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { motion, AnimatePresence } from 'framer-motion'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 
 type Course = {
@@ -18,510 +19,146 @@ type Course = {
   sotinhchi: number
 }
 
-type TimeSlot = {
+type StudyPlan = {
   id: string
-  start: string
-  end: string
+  userId: string
+  schedule: Course[]
+  specialization: string
+  hocky: string
 }
 
-type StudyCard = {
+type SpecializationData = {
   id: string
-  course: Course
-  timeSlots: TimeSlot[]
+  tenchuyennganh: string
+  chuyennganh: string
 }
 
-type DayStudyCards = {
-  [key: string]: StudyCard[]
-}
-
-type WeeklySchedule = {
-  specialization: 'IOT' | 'Network'
-  schedule: DayStudyCards
-}
-
-const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-
-const TIME_SLOTS: TimeSlot[] = [
-  { id: '1-2', start: '07:00', end: '08:20' },
-  { id: '3', start: '08:40', end: '09:20' },
-  { id: '4-5', start: '09:30', end: '10:50' },
-  { id: '6-7', start: '13:00', end: '14:20' },
-  { id: '8', start: '14:40', end: '15:20' },
-  { id: '9-10', start: '15:30', end: '16:50' },
-  { id: '11-12', start: '18:30', end: '19:50' },
-  { id: '13', start: '20:00', end: '20:40' },
-]
-
-// Assuming the JSON data is imported or fetched
-const courseData: any = [
+const rawData: SpecializationData[] = [
   {
-    "tenmon": "Triết học Mác - Lênin",
-    "mamon": "CT2101",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Kinh tế CT Mác - Lênin",
-    "mamon": "CT2102",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "CNXH khoa học",
-    "mamon": "CT2103",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Lịch sử Đảng CSVN",
-    "mamon": "CT2104",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Tư tưởng HCM",
-    "mamon": "CT1102",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Toán cao cấp A1",
-    "mamon": "CB1106",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Toán cao cấp A2",
-    "mamon": "CB1107",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Vật lý đại cương A1",
-    "mamon": "CB1111",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Xác suất thống kê",
-    "mamon": "CB1109",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Nguyên lý kế toán",
-    "mamon": "EC1217",
-    "sotinhchi": 2
-  },
-
-  {
-    "tenmon": "Khởi nghiệp",
-    "mamon": "EC1600",
-    "sotinhchi": 1
-  },
-
-  {
-    "tenmon": "Pháp luật đại cương",
-    "mamon": "UL1104",
-    "sotinhchi": 2
-  },
-
-  {
-    "tenmon": "Kỹ thuật số",
-    "mamon": "DT1282",
-    "sotinhchi": 2
-  },
-
-  {
-    "tenmon": "Tin học cơ sở",
-    "mamon": "TH1201",
-    "sotinhchi": 2
-  },
-
-  {
-    "tenmon": "Tin học cơ sở",
-    "mamon": "TH1201",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Toán rời rạc",
-    "mamon": "TH1203",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Biên tập và soạn thảo VB",
-    "mamon": "TH1227",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Cơ sở dữ liệu",
-    "mamon": "TH1207",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Lập trình căn bản",
-    "mamon": "TH1219",
-    "sotinhchi": 4
-  },
-  {
-    "tenmon": "Cấu trúc máy tính",
-    "mamon": "TH1205",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Tin học ứng dụng",
-    "mamon": "TH1522",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Lắp ráp cài đặt MT",
-    "mamon": "TH1521",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Phân tích và thiết kế hệ thống thông tin",
-    "mamon": "TH1305",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "CTDL và GT",
-    "mamon": "TH1206",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Lập trình hướng đối tượng",
-    "mamon": "TH1209",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Hệ điều hành",
-    "mamon": "TH1208",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "An toàn và vệ sinh lao động trong lĩnh vực CNTT",
-    "mamon": "TH1217",
-    "sotinhchi": 1
-  },
-  {
-    "tenmon": "Anh văn chuyên ngành",
-    "mamon": "TH1354",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Phân tích và thiết kế thuật toán",
-    "mamon": "TH1212",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Lập trình dotNET",
-    "mamon": "TH1337",
-    "sotinhchi": 4
-  },
-  {
-    "tenmon": "Lập trình Java",
-    "mamon": "TH1309",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Mạng máy tính",
-    "mamon": "TH1214",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Phần mềm mã nguồn mở",
-    "mamon": "TH1216",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Xử lý ảnh",
-    "mamon": "TH1335",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Lập trình Web",
-    "mamon": "TH1336",
-    "sotinhchi": 4
-  },
-  {
-    "tenmon": "Lập trình ứng dụng cho thiết bị di động",
-    "mamon": "TH1338",
-    "sotinhchi": 4
-  },
-  {
-    "tenmon": "Sensor và ứng dụng",
-    "mamon": "TH1376",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Internet vạn vật",
-    "mamon": "TH1359",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Phân tích thiết kế hướng đối tượng",
-    "mamon": "TH1324",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Trí tuệ nhân tạo",
-    "mamon": "TH1333",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Bảo mật ứng dụng web",
-    "mamon": "TH1358",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Hệ QTCSDL",
-    "mamon": "TH1307",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Phát triển ứng dụng IOT",
-    "mamon": "TH1369",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Đồ án 1",
-    "mamon": "TH1507",
-    "sotinhchi": 1
-  },
-  {
-    "tenmon": "Đồ án 2",
-    "mamon": "TH1512",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Thực tập tốt nghiệp",
-    "mamon": "TH1601",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Thương mại điện tử",
-    "mamon": "TH1606",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Cơ sở dữ liệu phân tán",
-    "mamon": "TH1607",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Chuyên đề về CNTT",
-    "mamon": "TH1608",
-    "sotinhchi": 4
+    "id": "7702c073-0ec5-493b-8311-0e27ddb068f8",
+    "tenchuyennganh": "Network",
+    "chuyennganh": "[]"
   }
 ]
 
-const iotCourses = [
-  {
-    "tenmon": "Hệ thống nhúng",
-    "mamon": "TH1355",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Ứng dụng máy học trong IOT",
-    "mamon": "TH1361",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Mạng trong IOT",
-    "mamon": "TH1356",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Phát triển ứng dụng IOT nâng cao",
-    "mamon": "TH1357",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Phân tích dữ liệu lớn trong IOT",
-    "mamon": "TH1360",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Ứng dụng điện toán đám mây trong IOT",
-    "mamon": "TH1362",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Bảo mật trong IOT",
-    "mamon": "TH1377",
-    "sotinhchi": 3
+const parseSpecializationData = (data: SpecializationData[]): Course[] => {
+  if (data.length === 0) return []
+  try {
+    return JSON.parse(data[0].chuyennganh)
+  } catch (error) {
+    console.error("Error parsing specialization data:", error)
+    return []
   }
-]
+}
 
-const networkCourses = [
-  {
-    "tenmon": "Quản trị mạng máy tính",
-    "mamon": "TH1339",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Thiết kế mạng máy tính",
-    "mamon": "TH1316",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "CN mạng không dây",
-    "mamon": "TH1342",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Hệ thống thông tin quang",
-    "mamon": "TH1526",
-    "sotinhchi": 2
-  },
-  {
-    "tenmon": "Triển khai hệ thống mạng văn phòng",
-    "mamon": "TH1370",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "Lập trình mạng",
-    "mamon": "TH1314",
-    "sotinhchi": 3
-  },
-  {
-    "tenmon": "An toàn và an ninh thông tin",
-    "mamon": "TH1341",
-    "sotinhchi": 3
-  }
-]
+const courseData: Course[] = parseSpecializationData(rawData)
 
 export default function StudyPlan() {
-  const [studyCards, setStudyCards] = useState<DayStudyCards>({})
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
-  const [selectedTimeSlots, setSelectedTimeSlots] = useState<TimeSlot[]>([])
-  const [activeDay, setActiveDay] = useState(DAYS_OF_WEEK[0])
-  const [specialization, setSpecialization] = useState<'IOT' | 'Network'>('Network')
-  const [editingCard, setEditingCard] = useState<string | null>(null)
-  const [isWeeklyScheduleOpen, setIsWeeklyScheduleOpen] = useState(false)
-  const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set())
   const [selectedSemester, setSelectedSemester] = useState<string>("42")
-
-  const allCourses = React.useMemo(() => {
-    const specializedCourses = specialization === 'Network' ? networkCourses : iotCourses
-    return [...courseData, ...specializedCourses]
-  }, [specialization])
+  const [selectedCourses, setSelectedCourses] = useState<Course[]>([])
+  const [specialization, setSpecialization] = useState<'IOT' | 'Network'>('Network')
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [suggestedPlans, setSuggestedPlans] = useState<StudyPlan[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [tinhchi, setTinhchi] = useState(0);
+  const [allRegisteredCourses, setAllRegisteredCourses] = useState<Course[]>([])
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true)
       try {
-        const response = await axios.post("/api/tracuu/sinhvien/kehoach", { hocky: selectedSemester, userId: Cookies.get("mssv") })
-        if (response?.data[0]?.schedule) {
-          setStudyCards(response.data[0].schedule)
-          updateSelectedCourses(response.data[0].schedule)
-        } else {
-          setStudyCards({})
-          setSelectedCourses(new Set())
+        const userPlanResponse = await axios.post("/api/tracuu/sinhvien/kehoach", { userId: Cookies.get("mssv") })
+
+        const studyPlanData = userPlanResponse.data
+        const filteredPlans = studyPlanData.filter((plan: any) => plan.hocky === selectedSemester);
+        console.log(filteredPlans)
+        setSelectedCourses(filteredPlans && filteredPlans.length > 0 ? filteredPlans[0].schedule || [] : [])
+        const totalTinhchi = filteredPlans.reduce((acc: any, item: any) => {
+          return acc + (item.schedule ? item.schedule.reduce((sum: number, course: any) => sum + course.sotinhchi, 0) : 0);
+        }, 0);
+        setTinhchi(totalTinhchi);
+        const allCourses = studyPlanData.flatMap((plan: StudyPlan) => plan.schedule)
+        setAllRegisteredCourses(allCourses)
+
+        const coursesResponse = await axios.post("/api/tracuu/chuyennganh", { tenchuyennganh: specialization })
+        if (coursesResponse.data && coursesResponse.data[0] && coursesResponse.data[0].chuyennganh) {
+          const parsedCourses: Course[] = JSON.parse(coursesResponse.data[0].chuyennganh)
+          const filteredCourses = parsedCourses.filter(course =>
+            !allCourses.some((registeredCourse: any) => registeredCourse.mamon === course.mamon)
+          )
+          setAvailableCourses(filteredCourses)
         }
       } catch (error) {
-        console.error("Error fetching study plan:", error)
-
+        console.error("Error fetching data:", error)
+      } finally {
+        setIsLoading(false)
       }
     }
     fetchData()
-  }, [selectedSemester])
+  }, [specialization, selectedSemester])
 
-  const updateSelectedCourses = (schedule: DayStudyCards) => {
-    const courses = new Set<string>()
-    Object.values(schedule).forEach(dayCards => {
-      dayCards.forEach(card => courses.add(card.course.mamon))
-    })
-    setSelectedCourses(courses)
-  }
+  useEffect(() => {
+    console.log("Available courses updated:", availableCourses)
+  }, [availableCourses])
 
-  const addNewCard = (day: string) => {
-    if (!selectedCourse || selectedTimeSlots.length === 0) return
-
-    const newCard: StudyCard = {
-      id: Date.now().toString(),
-      course: selectedCourse,
-      timeSlots: selectedTimeSlots,
+  const addCourse = (course: Course) => {
+    if (!allRegisteredCourses.some(registeredCourse => registeredCourse.mamon === course.mamon)) {
+      setSelectedCourses(prev => [...prev, course]);
+      setAllRegisteredCourses(prev => [...prev, course]);
+      setTinhchi(prevTinhchi => prevTinhchi + course.sotinhchi);
+    } else {
+      alert("This course is already registered in another semester.");
     }
+  };
 
-    setStudyCards(prev => ({
-      ...prev,
-      [day]: [...(prev[day] || []), newCard],
-    }))
-
-    setSelectedCourses(prev => new Set(prev).add(selectedCourse.mamon))
-    setSelectedCourse(null)
-    setSelectedTimeSlots([])
-  }
-
-  const removeCard = (day: string, cardId: string) => {
-    setStudyCards(prev => {
-      const updatedCards = {
-        ...prev,
-        [day]: prev[day].filter(card => card.id !== cardId)
+  const removeCourse = (mamon: string) => {
+    setSelectedCourses(prevCourses => {
+      const updatedCourses = prevCourses.filter(course => course.mamon !== mamon);
+      const removedCourse = prevCourses.find(course => course.mamon === mamon);
+      if (removedCourse) {
+        setTinhchi(prevTinhchi => prevTinhchi - removedCourse.sotinhchi);
       }
-      const removedCard = prev[day].find(card => card.id === cardId)
-      if (removedCard) {
-        setSelectedCourses(prevSelected => {
-          const newSelected = new Set(prevSelected)
-          newSelected.delete(removedCard.course.mamon)
-          return newSelected
-        })
-      }
-      return updatedCards
-    })
+      return updatedCourses;
+    });
   }
 
-  const editCard = (day: string, cardId: string, newCourse: Course, newTimeSlots: TimeSlot[]) => {
-    setStudyCards(prev => {
-      const updatedCards = {
-        ...prev,
-        [day]: prev[day].map(card =>
-          card.id === cardId ? { ...card, course: newCourse, timeSlots: newTimeSlots } : card
-        )
-      }
-      const oldCard = prev[day].find(card => card.id === cardId)
-      if (oldCard && oldCard.course.mamon !== newCourse.mamon) {
-        setSelectedCourses(prevSelected => {
-          const newSelected = new Set(prevSelected)
-          newSelected.delete(oldCard.course.mamon)
-          newSelected.add(newCourse.mamon)
-          return newSelected
-        })
-      }
-      return updatedCards
-    })
-    setEditingCard(null)
+  const handlexemkehoach = async () => {
+    try {
+      const response = await axios.post("/api/tracuu/sinhvien/kehoach", { userId: Cookies.get("mssv") })
+      console.log(response.data)
+      setSuggestedPlans(response.data)
+      setIsModalOpen(true)
+    } catch (error) {
+      console.error("Error fetching suggested plans:", error)
+      alert("Có lỗi xảy ra khi tải kế hoạch đề xuất. Vui lòng thử lại sau.")
+    }
   }
 
-  const getAvailableTimeSlots = (day: string) => {
-    const occupiedSlots = studyCards[day]?.flatMap(card => card.timeSlots.map(slot => slot.id)) || []
-    return TIME_SLOTS.filter(slot => !occupiedSlots.includes(slot.id))
-  }
-
-  const handleTimeSlotChange = (selectedSlots: TimeSlot[]) => {
-    if (!selectedCourse) return
-    const requiredSlots = selectedCourse.sotinhchi <= 2 ? selectedCourse.sotinhchi : 3
-    setSelectedTimeSlots(selectedSlots.slice(0, requiredSlots))
-  }
-
-  const saveWeeklySchedule = async () => {
-    await axios.post("/api/sinhvien/kehoach", {
-      userId: Cookies.get("mssv"),
-      specialization: specialization,
-      schedule: studyCards,
-      hocky: selectedSemester
-    })
+  const saveStudyPlan = async () => {
+    try {
+      await axios.post("/api/sinhvien/kehoach", {
+        userId: Cookies.get("mssv"),
+        schedule: selectedCourses,
+        hocky: selectedSemester,
+        specialization: specialization
+      })
+      alert("Kế hoạch học tập đã được lưu thành công!")
+    } catch (error) {
+      console.error("Error saving study plan:", error)
+      alert("Có lỗi xảy ra khi lưu kế hoạch học tập. Vui lòng thử lại sau.")
+    }
   }
 
   return (
     <div className='p-4 bg-gray-100 min-h-screen'>
       <div className='text-3xl font-bold mb-6 text-center text-gray-800'>Lập kế hoạch học tập</div>
       <div className="w-full max-w-4xl mx-auto flex flex-col sm:flex-row justify-center items-center gap-6 bg-white p-6 rounded-lg shadow-lg mb-8">
-        <Select value={specialization} onValueChange={(value: 'IOT' | 'Network') => setSpecialization(value)}>
-          <SelectTrigger className="w-full sm:w-64">
-            <SelectValue placeholder="Select specialization" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="IOT">IOT</SelectItem>
-            <SelectItem value="Network">Network</SelectItem>
-          </SelectContent>
-        </Select>
         <Select value={selectedSemester} onValueChange={setSelectedSemester}>
           <SelectTrigger className="w-full sm:w-64">
             <SelectValue placeholder="Select semester" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 max-h-60 overflow-y-auto">
             <SelectGroup>
               <SelectItem value="42" className="text-sm text-gray-700 hover:bg-indigo-100 hover:text-indigo-900">Học kỳ 1, 2024-2025</SelectItem>
               <SelectItem value="43" className="text-sm text-gray-700 hover:bg-indigo-100 hover:text-indigo-900">Học kỳ 2, 2024-2025</SelectItem>
@@ -546,162 +183,137 @@ export default function StudyPlan() {
             </SelectGroup>
           </SelectContent>
         </Select>
+        <Select value={specialization} onValueChange={(value: 'IOT' | 'Network') => setSpecialization(value)}>
+          <SelectTrigger className="w-full sm:w-64">
+            <SelectValue placeholder="Select specialization" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="IOT">IOT</SelectItem>
+            <SelectItem value="Network">Network</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <Card className="w-full max-w-4xl mx-auto bg-white shadow-xl rounded-lg overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
           <CardTitle className="text-2xl">Kế hoạch học tập</CardTitle>
-          <CardDescription className="text-gray-200">Sắp xếp lịch học hàng tuần</CardDescription>
+          <CardDescription className="text-gray-200">Chọn môn học cho kế hoạch của bạn</CardDescription>
         </CardHeader>
         <CardContent className="p-6">
-          <Tabs value={activeDay} onValueChange={setActiveDay}>
-            <TabsList className="grid w-full grid-cols-7 mb-6">
-              {DAYS_OF_WEEK.map(day => (
-                <TabsTrigger key={day} value={day} className="text-xs sm:text-sm">
-                  {day.slice(0, 3)}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            {DAYS_OF_WEEK.map(day => (
-              <TabsContent key={day} value={day} className="mt-4">
-                <div className="space-y-4">
-                  {studyCards[day]?.map(card => (
-                    <Card key={card.id} className="bg-white shadow-sm hover:shadow-md transition-all duration-200">
-                      <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <div>
-                          <CardTitle className="text-lg font-medium text-gray-800">{card.course.tenmon}</CardTitle>
-                          <CardDescription className="text-sm text-gray-600">
-                            {card.course.mamon} - {card.course.sotinhchi} tính chỉ
-                          </CardDescription>
-                        </div>
-                        <div className='flex space-x-2'>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setEditingCard(card.id)}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeCard(day, card.id)}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
-                          <Clock className="h-4 w-4" />
-                          <span>{card.timeSlots.map(slot => `${slot.start}-${slot.end}`).join(', ')}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  <form onSubmit={(e) => { e.preventDefault(); addNewCard(day); }} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor={`course-${day}`}>Chọn môn học</Label>
-                      <Select
-                        value={selectedCourse?.mamon || ''}
-                        onValueChange={(value) => {
-                          const course = allCourses.find(c => c.mamon === value)
-                          setSelectedCourse(course || null)
-                          setSelectedTimeSlots([])
-                        }}
-                      >
-                        <SelectTrigger id={`course-${day}`}>
-                          <SelectValue placeholder="Lựa chọn môn học" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {allCourses
-                            .filter(course => !selectedCourses.has(course.mamon))
-                            .map((course) => (
-                              <SelectItem key={course.mamon} value={course.mamon}>
-                                {course.tenmon} ({course.mamon}) - {course.sotinhchi} tính chỉ
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {selectedCourse && (
-                      <div className="space-y-2">
-                        <Label htmlFor={`timeslot-${day}`}>Chọn giờ học </Label>
-                        <Select
-                          value={selectedTimeSlots.map(slot => slot.id).join(',')}
-                          onValueChange={(value) => {
-                            const slots = value.split(',').map(id => TIME_SLOTS.find(slot => slot.id === id)!).filter(Boolean)
-                            handleTimeSlotChange(slots)
-                          }}
-                        >
-                          <SelectTrigger id={`timeslot-${day}`}>
-                            <SelectValue placeholder="Chọn giờ học" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {getAvailableTimeSlots(day).map((slot) => (
-                              <SelectItem key={slot.id} value={slot.id}>
-                                {slot.start} - {slot.end}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="course-select">Chọn môn học</Label>
+              {isLoading ? (
+                <div>Loading courses...</div>
+              ) : availableCourses.length > 0 ? (
+                <Select
+                  onValueChange={(value) => {
+                    const course = availableCourses.find(c => c.mamon === value)
+                    if (course) addCourse(course)
+                  }}
+                >
+                  <SelectTrigger id="course-select">
+                    <SelectValue placeholder="Lựa chọn môn học" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableCourses
+                      .filter(course => !allRegisteredCourses.some(rc => rc.mamon === course.mamon))
+                      .map((course) => (
+                        <SelectItem key={course.mamon} value={course.mamon}>
+                          {course.tenmon} ({course.mamon}) - {course.sotinhchi} tín chỉ
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div>No courses available for the selected specialization.</div>
+              )}
+            </div>
+            <AnimatePresence>
+              {selectedCourses.map(course => (
+                <motion.div
+                  key={course.mamon}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.3 }}
+                  className="mb-4"
+                >
+                  <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50">
+                      <div className="flex-grow">
+                        <CardTitle className="text-lg font-semibold text-gray-800 mb-1">{course.tenmon}</CardTitle>
+                        <CardDescription className="text-sm text-gray-600 flex items-center">
+                          <span className="font-medium text-indigo-600 mr-2">{course.mamon}</span>
+                          <span className="bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                            {course.sotinhchi} tín chỉ
+                          </span>
+                        </CardDescription>
                       </div>
-                    )}
-                    <Button
-                      type="submit"
-                      disabled={!selectedCourse || selectedTimeSlots.length === 0}
-                      className="w-full"
-                    >
-                      <Plus className="h-4 w-4 mr-2" /> Thêm môn học
-                    </Button>
-                  </form>
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeCourse(course.mamon)}
+                        className="text-red-600 hover:text-red-800 hover:bg-red-100 rounded-full p-2 transition-colors duration-200"
+                      >
+                        <Trash className="h-5 w-5" />
+                        <span className="sr-only">Remove course</span>
+                      </Button>
+                    </CardHeader>
+                  </Card>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+          <div className='flex justify-end items-center mt-5'>
+            <div className='font-semibold text-slate-500'>Tổng tín chỉ: {tinhchi}</div>
+          </div>
+
         </CardContent>
         <CardFooter className="bg-gray-50 flex justify-between items-center p-6">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Calendar className="h-4 w-4 mr-2" /> Xem lịch hàng tuần
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl">
-              <DialogHeader>
-                <DialogTitle>Thông tin chi tiết kế hoạch</DialogTitle>
-                <DialogDescription>Kế hoạch học tập của bạn tại đây</DialogDescription>
-              </DialogHeader>
-              <div className="grid grid-cols-8 gap-2 mt-4">
-                <div className="font-bold"></div>
-                {DAYS_OF_WEEK.map(day => <div key={day} className="font-bold text-center">{day}</div>)}
-                {TIME_SLOTS.map(slot => (
-                  <React.Fragment key={slot.id}>
-                    <div className="text-sm font-medium text-gray-600">{slot.start}-{slot.end}</div>
-                    {DAYS_OF_WEEK.map(day => {
-                      const course = studyCards[day]?.find(card => card.timeSlots.some(ts => ts.id === slot.id))
-                      return (
-                        <div key={`${day}-${slot.id}`} className="border p-2 text-xs">
-                          {course ? (
-                            <div className="bg-blue-100 p-1 rounded">
-                              <div className="font-semibold">{course.course.tenmon}</div>
-                              <div className="text-gray-600">{course.course.mamon}</div>
-                            </div>
-                          ) : null}
-                        </div>
-                      )
-                    })}
-                  </React.Fragment>
-                ))}
-              </div>
-            </DialogContent>
-          </Dialog>
-          <Button onClick={saveWeeklySchedule} className="bg-green-600 hover:bg-green-700">
-            <Save className="h-4 w-4 mr-2" /> Lưu thông tin
+          <Button onClick={handlexemkehoach} className="bg-blue-600 hover:bg-blue-700">
+            <Calendar className='h-4 w-4 mr-2' /> Xem các đề xuất
+          </Button>
+          <Button onClick={saveStudyPlan} className="bg-green-600 hover:bg-green-700">
+            <Save className="h-4 w-4 mr-2" /> Lưu kế hoạch học tập
           </Button>
         </CardFooter>
       </Card>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+  <DialogContent className="sm:max-w-[425px]">
+    <DialogHeader>
+      <DialogTitle>Kế hoạch học tập đề xuất</DialogTitle>
+      <DialogDescription>
+        Dưới đây là các kế hoạch học tập được đề xuất dựa trên lịch sử học tập của bạn.
+      </DialogDescription>
+    </DialogHeader>
+    <ScrollArea className="mt-4 max-h-[300px]">
+      <div className="space-y-4">
+        {suggestedPlans.map((plan, index) => (
+          <Card key={plan.id} className="bg-white shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Đề xuất học kỳ {plan.hocky}</CardTitle>
+              <CardDescription>
+                Chuyên ngành: {plan.specialization}, Học kỳ: {plan.hocky}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="list-disc pl-5 space-y-1">
+                {plan.schedule.map((course) => (
+                  <li key={course.mamon} className="text-sm">
+                    {course.tenmon} ({course.mamon}) - {course.sotinhchi} tín chỉ
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </ScrollArea>
+  </DialogContent>
+</Dialog>
+
     </div>
   )
 }
+
